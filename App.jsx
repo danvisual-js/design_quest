@@ -5,15 +5,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
    ============================================================ */
 
 const GAME_TITLE = "Design Quest";
-const GAME_SUBTITLE = "(Dan Visual)";
+const GAME_SUBTITLE_LINE = "A TOP-DOWN DESIGN ADVENTURE";
 const GAME_DESCRIPTION =
-  "Walk through Daniel Tieu's career as a town you can explore. Step into the Arcade for real UX case studies, climb the Tower to see his skills, chat with townsfolk for the story behind the work, and find his contact info at the Post Office.";
-const GAME_FEATURES = [
-  "Explore a full town — Arcade, Tower, Cottage, Library, Post Office, Gallery",
-  "Talk to NPCs for the story behind the portfolio",
-  "Tap the wandering critters just for fun",
-  "Choose your character before you set out",
-];
+  "Lead Product Designer obsessed with scalable systems and high-fidelity interactions. Motion roots, systems brain.";
 
 const PROFILE = {
   name: "Daniel Tieu",
@@ -47,14 +41,14 @@ const ABOUT = {
 };
 
 const SKILLS = [
-  { name: "Product Design", level: 5 },
-  { name: "Conversion & Growth Design", level: 5 },
-  { name: "Interaction & Motion Design", level: 5 },
-  { name: "Design Systems", level: 4 },
-  { name: "UX Research & Diagnosis", level: 4 },
-  { name: "Prototyping (Figma)", level: 5 },
-  { name: "Cross-functional Partnership", level: 5 },
-  { name: "Accessibility", level: 4 },
+  { name: "Product Design", level: 5, desc: "End-to-end product thinking, from problem framing to shipped UI." },
+  { name: "Conversion & Growth Design", level: 5, desc: "Diagnosing drop-off and shipping the fix — proven across GoodRx and Amyris." },
+  { name: "Interaction & Motion Design", level: 5, desc: "A motion design background that shapes every interface he touches." },
+  { name: "Design Systems", level: 4, desc: "Built foundational systems at Sephora and an enterprise library at Estée Lauder." },
+  { name: "UX Research & Diagnosis", level: 4, desc: "Surveys, funnel diagnosis, and synthesis that drives the next decision." },
+  { name: "Prototyping (Figma)", level: 5, desc: "Fast, high-fidelity prototypes that hold up under real engineering review." },
+  { name: "Cross-functional Partnership", level: 5, desc: "Works fluently with engineering, legal, and clinical teams on regulated products." },
+  { name: "Accessibility", level: 4, desc: "Navigation, tap-targets, and accessibility work built into the React rebuild at Doctronic." },
 ];
 
 // Real resume — reverse chronological
@@ -234,32 +228,38 @@ const VISUAL_PROJECTS = [
   {
     id: "sephora-digital",
     title: "Sephora Digital Marketing",
-    blurb: "Digital marketing visual design for Sephora campaigns.",
+    period: "2014 – 2021",
+    blurb:
+      "Visual and campaign design across Sephora's digital marketing — translating brand campaigns into web and social placements that stayed on-brand at scale.",
+    emphasis: "Brand consistency across a high-volume retail marketing calendar.",
     link: "https://www.danielvisual.com/sephora-digital/",
   },
   {
     id: "old-navy",
     title: "Old Navy",
-    blurb: "Campaign and digital marketing visual design for Old Navy.",
+    period: "2014 – 2021",
+    blurb:
+      "Campaign and digital marketing visual design for Old Navy — seasonal promotions, sale events, and mobile-first marketing placements.",
+    emphasis: "Fast-turnaround campaign work in a high-frequency retail marketing cycle.",
     link: "https://www.danielvisual.com/old-navy-digital/",
-  },
-  {
-    id: "amazon-wfs",
-    title: "Amazon WFS",
-    blurb: "Visual design for Amazon Warehousing & Fulfillment Services — part of the Amazon Jobs candidate portal work supporting 1.6M annual hires.",
-    link: "https://www.danielvisual.com/amazon-wfs/",
   },
   {
     id: "live-nation",
     title: "Live Nation",
-    blurb: "Visual design for Live Nation digital experiences.",
+    period: "2014 – 2021",
+    blurb:
+      "Visual design for Live Nation's digital entertainment experiences — campaign-driven pages built for ticket-buying urgency and artist branding.",
+    emphasis: "Entertainment branding paired with conversion-focused interaction design.",
     link: "https://www.danielvisual.com/live-nation/",
   },
   {
-    id: "vax-smart",
-    title: "Vax Smart",
-    blurb: "Smart home product visual and interaction design.",
-    link: "https://www.danielvisual.com/vaxsmart/",
+    id: "amazon-wfs",
+    title: "Amazon WFS",
+    period: "2014 – 2021",
+    blurb:
+      "Visual design for the Amazon Jobs candidate portal mobile funnel — built to handle massive scale without losing clarity for first-time applicants.",
+    emphasis: "Supported 1.6M annual hires through the mobile candidate funnel.",
+    link: "https://www.danielvisual.com/amazon-wfs/",
   },
 ];
 
@@ -338,11 +338,12 @@ const NPCS = [
     x: 25,
     y: 13,
     palette: { skin: "#f0c89c", robe: "#3098e8", trim: "#bfe0ff" },
-    intro: "Need to send word to Daniel? I know all the routes.",
+    intro: "Looking to reach Daniel? I won't just hand you the address — but I'll give you a clue, if you're up for it.",
+    riddle:
+      "Seek the building with the golden roof and the flag flying high near its chimney. Knock there, and the way to reach him will be revealed.",
     branches: [
-      { label: "Send by LinkedIn", response: "linkedin" },
-      { label: "Send by email", response: "email" },
-      { label: "Send by Dribbble", response: "dribbble" },
+      { label: "Give me the clue", response: "clue" },
+      { label: "I found it — reveal the contact", response: "reveal" },
     ],
   },
 ];
@@ -627,22 +628,26 @@ function Building({ b, active }) {
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: "visible" }}>
         <BuildingArt b={b} w={w} h={h} roofH={roofH} />
       </svg>
+      {/* Signage plaque mounted on the building face, above the door — high contrast for readability */}
       <div
         style={{
           position: "absolute",
-          top: -28,
-          left: 0,
-          width: "100%",
+          left: "50%",
+          bottom: h * 0.42,
+          transform: "translateX(-50%)",
+          background: "#1c1408",
+          border: "2px solid #ffe858",
+          borderRadius: 3,
+          padding: "3px 7px",
           textAlign: "center",
-          fontFamily: "'Press Start 2P', monospace",
-          fontSize: 9,
-          color: "#fff8e6",
-          textShadow: "2px 2px 0 #1a1208, -1px -1px 0 #1a1208",
-          letterSpacing: 0.5,
+          whiteSpace: "nowrap",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.4)",
         }}
       >
-        {b.label}
-        <div style={{ fontSize: 7, color: "#ffe858", marginTop: 2, textShadow: "1.5px 1.5px 0 #1a1208" }}>{b.sub}</div>
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: "#ffe858", letterSpacing: 0.5 }}>
+          {b.label}
+        </div>
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 6, color: "#fffaf0", marginTop: 1 }}>{b.sub}</div>
       </div>
     </div>
   );
@@ -830,21 +835,6 @@ function NpcSprite({ x, y, palette, onTap, active }) {
     </div>
   );
 }
-function PixelPanel({ children, style }) {
-  return (
-    <div
-      style={{
-        background: "#1c2c44",
-        border: "4px solid #3068a8",
-        boxShadow: "0 0 0 4px #0c1828, inset 0 0 0 2px #264870",
-        borderRadius: 4,
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
 
 function PixelButton({ children, onClick, style, small }) {
   return (
@@ -869,14 +859,70 @@ function PixelButton({ children, onClick, style, small }) {
   );
 }
 
-function Modal({ title, onClose, children, wide }) {
+// Tracks which Modal instances are currently mounted, in mount order, so
+// that when modals are stacked (e.g. a project detail opened on top of the
+// Arcade list), only the topmost one responds to keyboard input — otherwise
+// a single keypress would affect every layer at once.
+let modalStackCounter = 0;
+const modalStack = [];
+
+function Modal({ title, onClose, children, wide, onEnter, onArrowLeft, onArrowRight }) {
+  const idRef = useRef(null);
+  if (idRef.current === null) {
+    idRef.current = ++modalStackCounter;
+  }
+  const bodyRef = useRef(null);
+
+  useEffect(() => {
+    modalStack.push(idRef.current);
+    return () => {
+      const i = modalStack.indexOf(idRef.current);
+      if (i !== -1) modalStack.splice(i, 1);
+    };
+  }, []);
+
   useEffect(() => {
     function onKey(e) {
-      if (e.key === "Escape") onClose();
+      const isTop = modalStack[modalStack.length - 1] === idRef.current;
+      if (!isTop) return;
+      switch (e.key) {
+        case "Escape":
+          e.preventDefault();
+          onClose();
+          break;
+        case "Enter":
+          // Enter confirms/closes a modal by default unless the modal supplies
+          // its own onEnter handler (e.g. a sub-flow that wants Enter to advance
+          // a step instead of closing outright).
+          e.preventDefault();
+          if (onEnter) onEnter();
+          else onClose();
+          break;
+        case "ArrowUp":
+          // Up/Down always scroll the modal body — this is what makes long
+          // case-study and resume text keyboard-navigable.
+          e.preventDefault();
+          if (bodyRef.current) bodyRef.current.scrollBy({ top: -64, behavior: "smooth" });
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          if (bodyRef.current) bodyRef.current.scrollBy({ top: 64, behavior: "smooth" });
+          break;
+        case "ArrowLeft":
+          // Left/Right are free for the modal's own content to claim — used
+          // by carousels (Gallery) and stat navigation (Tower).
+          if (onArrowLeft) { e.preventDefault(); onArrowLeft(); }
+          break;
+        case "ArrowRight":
+          if (onArrowRight) { e.preventDefault(); onArrowRight(); }
+          break;
+        default:
+          break;
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, onEnter, onArrowLeft, onArrowRight]);
 
   return (
     <div
@@ -894,7 +940,20 @@ function Modal({ title, onClose, children, wide }) {
         padding: 16,
       }}
     >
-      <PixelPanel style={{ width: wide ? "min(640px, 100%)" : "min(420px, 100%)", maxHeight: "85%", overflowY: "auto", position: "relative" }}>
+      <div
+        style={{
+          width: wide ? "min(640px, 100%)" : "min(420px, 100%)",
+          maxHeight: "85%",
+          display: "flex",
+          flexDirection: "column",
+          background: "#1c2c44",
+          border: "4px solid #3068a8",
+          boxShadow: "0 0 0 4px #0c1828, inset 0 0 0 2px #264870",
+          borderRadius: 4,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
         <div
           style={{
             position: "absolute",
@@ -911,9 +970,8 @@ function Modal({ title, onClose, children, wide }) {
             justifyContent: "space-between",
             padding: "10px 14px",
             borderBottom: "3px solid #3068a8",
-            position: "sticky",
-            top: 0,
             background: "#1c3050",
+            flexShrink: 0,
           }}
         >
           <h2 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 11, color: "#ffe858", margin: 0, letterSpacing: 0.5 }}>
@@ -935,28 +993,57 @@ function Modal({ title, onClose, children, wide }) {
             X
           </button>
         </div>
-        <div style={{ padding: 16, color: "#f0ece0", fontFamily: "'VT323', monospace", fontSize: 16, lineHeight: 1.5 }}>
+        {/* Scrollable body — isolated from the backdrop so mouse-wheel,
+            trackpad, and Up/Down arrow-key scroll all reach this element. */}
+        <div
+          ref={bodyRef}
+          tabIndex={-1}
+          role="document"
+          style={{
+            padding: 16,
+            color: "#f0ece0",
+            fontFamily: "'VT323', monospace",
+            fontSize: 16,
+            lineHeight: 1.5,
+            overflowY: "auto",
+            overscrollBehavior: "contain",
+            WebkitOverflowScrolling: "touch",
+            flex: 1,
+          }}
+        >
           {children}
         </div>
-      </PixelPanel>
+      </div>
     </div>
   );
 }
 
-
-
+// Lets content nested inside a Modal (carousels, stat screens) claim Left/Right
+// arrow keys for their own navigation, but only while no further modal has
+// been stacked on top of their parent (e.g. a project detail opened from the
+// Arcade list) — otherwise a deeper modal's controls could be shadowed by a
+// carousel two layers down still listening.
 /* ============================================================
    PROJECT CARD + DETAIL (Arcade — case studies only)
    ============================================================ */
 
-function ProjectCard({ project, onSelect }) {
+function ProjectCard({ project, focused, onSelect }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (focused && ref.current) {
+      ref.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [focused]);
+
   return (
     <button
+      ref={ref}
       onClick={() => onSelect(project)}
       style={{
         textAlign: "left",
         background: project.featured ? "#284060" : "#203854",
-        border: project.featured ? "2px solid #ffe858" : "2px solid #3068a8",
+        border: focused ? "2px solid #ffe858" : "2px solid #3068a8",
+        boxShadow: focused ? "0 0 0 2px rgba(255,232,88,0.35)" : "none",
         borderRadius: 4,
         padding: 10,
         cursor: "pointer",
@@ -966,10 +1053,12 @@ function ProjectCard({ project, onSelect }) {
         flexDirection: "column",
         gap: 4,
         width: "100%",
+        outline: "none",
+        transition: "border-color 0.1s, box-shadow 0.1s",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
-        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, color: project.featured ? "#ffe858" : "#70c8ff" }}>
+        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 9, color: focused ? "#ffe858" : "#70c8ff" }}>
           {project.title}
         </span>
         {project.featured && <span style={{ fontSize: 11, color: "#ffe858" }}>★ FEATURED</span>}
@@ -984,6 +1073,24 @@ function ProjectCard({ project, onSelect }) {
         ))}
       </div>
     </button>
+  );
+}
+
+// ArcadeContent receives all navigation callbacks from the parent Modal
+// so there's exactly one keydown listener in the whole system.
+function ArcadeContent({ focusIndex, onFocusPrev, onFocusNext, onSelectProject }) {
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+        <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", margin: 0 }}>UX CASE STUDIES</h3>
+        <span style={{ fontSize: 12, color: "#8a8270" }}>▲▼ navigate · Enter to open</span>
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {CASE_STUDIES.map((p, i) => (
+          <ProjectCard key={p.id} project={p} focused={i === focusIndex} onSelect={onSelectProject} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1020,44 +1127,27 @@ function ProjectDetail({ project, onClose }) {
   );
 }
 
-function ArcadeContent({ onSelectProject }) {
-  return (
-    <div>
-      <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", marginBottom: 10 }}>UX CASE STUDIES</h3>
-      <div style={{ display: "grid", gap: 8 }}>
-        {CASE_STUDIES.map((p) => (
-          <ProjectCard key={p.id} project={p} onSelect={onSelectProject} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ============================================================
    GALLERY (Visual / Play projects) — swipeable
    ============================================================ */
 
-function GalleryContent() {
-  const [index, setIndex] = useState(0);
+function GalleryContent({ index, onPrev, onNext }) {
   const project = VISUAL_PROJECTS[index];
-
-  const next = () => setIndex((i) => (i + 1) % VISUAL_PROJECTS.length);
-  const prev = () => setIndex((i) => (i - 1 + VISUAL_PROJECTS.length) % VISUAL_PROJECTS.length);
 
   const touchStartX = useRef(null);
   function onTouchStart(e) { touchStartX.current = e.touches[0].clientX; }
   function onTouchEnd(e) {
     if (touchStartX.current == null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
-    if (dx > 40) prev();
-    else if (dx < -40) next();
+    if (dx > 40) onPrev();
+    else if (dx < -40) onNext();
     touchStartX.current = null;
   }
 
   return (
     <div>
       <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", marginBottom: 10 }}>
-        VISUAL &amp; PLAY PROJECTS
+        BRANDING &amp; CAMPAIGN WORK
       </h3>
       <div
         onTouchStart={onTouchStart}
@@ -1066,17 +1156,22 @@ function GalleryContent() {
           background: "#203854",
           border: "2px solid #3068a8",
           borderRadius: 4,
-          padding: 18,
+          padding: 20,
           textAlign: "center",
-          minHeight: 160,
+          minHeight: 200,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          gap: 10,
+          gap: 12,
         }}
       >
-        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 11, color: "#e858a8" }}>{project.title}</div>
-        <p style={{ fontSize: 15 }}>{project.blurb}</p>
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 12, color: "#e858a8" }}>{project.title}</div>
+        <div style={{ fontSize: 12, color: "#8a8270" }}>{project.period}</div>
+        <p style={{ fontSize: 15, margin: 0 }}>{project.blurb}</p>
+        <div style={{ background: "#142438", border: "1px solid #3068a8", borderRadius: 4, padding: "8px 12px" }}>
+          <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 8, color: "#5cd87c" }}>HIGHLIGHT: </span>
+          <span style={{ fontSize: 14 }}>{project.emphasis}</span>
+        </div>
         <a href={project.link} target="_blank" rel="noopener noreferrer">
           <PixelButton small style={{ background: "#e858a8", boxShadow: "0 0 0 2px #a8307c", margin: "0 auto" }}>
             VIEW ON DANIELVISUAL.COM →
@@ -1084,16 +1179,16 @@ function GalleryContent() {
         </a>
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
-        <PixelButton small onClick={prev}>◀ PREV</PixelButton>
+        <PixelButton small onClick={onPrev}>◀ PREV</PixelButton>
         <div style={{ display: "flex", gap: 6 }}>
           {VISUAL_PROJECTS.map((_, i) => (
             <span key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i === index ? "#ffe858" : "#3068a8", display: "inline-block" }} />
           ))}
         </div>
-        <PixelButton small onClick={next}>NEXT ▶</PixelButton>
+        <PixelButton small onClick={onNext}>NEXT ▶</PixelButton>
       </div>
       <p style={{ fontSize: 12, color: "#8a8270", marginTop: 10, fontStyle: "italic" }}>
-        Swipe, or use the prev/next buttons, to browse. Full images live on danielvisual.com.
+        ◀ ▶ arrow keys, swipe, or the buttons to browse. Full work lives on danielvisual.com.
       </p>
     </div>
   );
@@ -1124,23 +1219,74 @@ function HouseContent() {
   );
 }
 
-function TowerContent() {
+function TowerContent({ index, animKey, onPrev, onNext }) {
+  const skill = SKILLS[index];
+
   return (
     <div>
-      <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", marginBottom: 14 }}>STATS</h3>
-      <div style={{ display: "grid", gap: 12 }}>
-        {SKILLS.map((s) => (
-          <div key={s.name}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 14 }}>
-              <span>{s.name}</span>
-              <span style={{ color: "#5cd87c" }}>{"★".repeat(s.level)}</span>
-            </div>
-            <div style={{ height: 10, background: "#142438", border: "2px solid #3068a8" }}>
-              <div style={{ height: "100%", width: `${(s.level / 5) * 100}%`, background: "linear-gradient(to right, #3f9e5c, #5cd87c)" }} />
-            </div>
-          </div>
-        ))}
+      <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", marginBottom: 14, textAlign: "center" }}>
+        CHARACTER STATS
+      </h3>
+
+      {/* Profile header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18, justifyContent: "center" }}>
+        <svg width="48" height="64" viewBox="0 0 32 46">
+          <rect x="9" y="18" width="14" height="14" rx="3" fill="#3098e8" />
+          <rect x="11" y="30" width="4" height="8" fill="#264858" />
+          <rect x="17" y="30" width="4" height="8" fill="#264858" />
+          <rect x="9.5" y="4" width="13" height="13" rx="4" fill="#f0c89c" />
+          <path d="M8.5 8 Q16 -2 23.5 8 L23.5 11 Q16 5 8.5 11Z" fill="#283848" />
+          <rect x="8.5" y="6.5" width="15" height="4" rx="2" fill="#3098e8" />
+          <rect x="12" y="11" width="2.2" height="2.2" fill="#1a1208" />
+          <rect x="17.8" y="11" width="2.2" height="2.2" fill="#1a1208" />
+        </svg>
+        <div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 12, color: "#fffaf0" }}>{PROFILE.name}</div>
+          <div style={{ fontSize: 13, color: "#8a8270" }}>{PROFILE.title}</div>
+        </div>
       </div>
+
+      {/* Single animated stat card — key prop drives re-animation on nav */}
+      <div
+        key={animKey}
+        style={{
+          background: "#142438",
+          border: "2px solid #3068a8",
+          borderRadius: 6,
+          padding: 18,
+          textAlign: "center",
+          animation: "statSlideIn 0.35s ease-out",
+        }}
+      >
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 12, color: "#70c8ff", marginBottom: 10 }}>
+          {skill.name}
+        </div>
+        <div style={{ height: 16, background: "#0c1828", border: "2px solid #3068a8", borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
+          <div
+            style={{
+              height: "100%",
+              width: `${(skill.level / 5) * 100}%`,
+              background: "linear-gradient(to right, #3f9e5c, #5cd87c)",
+              animation: "statBarFill 0.6s ease-out",
+            }}
+          />
+        </div>
+        <div style={{ color: "#ffe858", fontSize: 16, marginBottom: 10 }}>{"★".repeat(skill.level)}{"☆".repeat(5 - skill.level)}</div>
+        <p style={{ fontSize: 14, color: "#c8c0a8", margin: 0 }}>{skill.desc}</p>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
+        <PixelButton small onClick={onPrev}>◀ PREV</PixelButton>
+        <div style={{ fontSize: 13, color: "#8a8270" }}>{index + 1} / {SKILLS.length}</div>
+        <PixelButton small onClick={onNext}>NEXT ▶</PixelButton>
+      </div>
+      <p style={{ fontSize: 12, color: "#8a8270", marginTop: 10, fontStyle: "italic", textAlign: "center" }}>
+        ◀ ▶ arrow keys or the buttons to browse stats.
+      </p>
+      <style>{`
+        @keyframes statSlideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes statBarFill { from { width: 0; } }
+      `}</style>
     </div>
   );
 }
@@ -1168,28 +1314,98 @@ function LibraryContent() {
 }
 
 function PostContent() {
-  return (
-    <div>
-      <p style={{ marginBottom: 16 }}>Send word, traveler. Daniel can be reached at:</p>
-      <div style={{ display: "grid", gap: 10 }}>
-        <a href={PROFILE.linkedin} target="_blank" rel="noopener noreferrer">
-          <PixelButton style={{ width: "100%" }} small>LINKEDIN →</PixelButton>
-        </a>
-        <a href={`mailto:${PROFILE.email}`}>
-          <PixelButton style={{ width: "100%", background: "#e8b830", boxShadow: "0 0 0 2px #a87c10" }} small>
-            EMAIL → {PROFILE.email}
-          </PixelButton>
-        </a>
-        <a href={PROFILE.dribbble} target="_blank" rel="noopener noreferrer">
-          <PixelButton style={{ width: "100%", background: "#e858a8", boxShadow: "0 0 0 2px #a8307c" }} small>DRIBBBLE →</PixelButton>
-        </a>
-        <a href={PROFILE.site} target="_blank" rel="noopener noreferrer">
-          <PixelButton style={{ width: "100%", background: "#30c890", boxShadow: "0 0 0 2px #1c8860" }} small>DANIELVISUAL.COM →</PixelButton>
-        </a>
+  const [chosen, setChosen] = useState(null);
+
+  const ROUTES = [
+    {
+      id: "linkedin",
+      label: "LinkedIn",
+      desc: "Connect professionally and see his full work history.",
+      href: PROFILE.linkedin,
+      color: "#3098e8",
+      shadow: "#1c68a8",
+    },
+    {
+      id: "email",
+      label: "Email",
+      desc: "Drop a direct message — he'll get back to you.",
+      href: `mailto:${PROFILE.email}`,
+      color: "#e8b830",
+      shadow: "#a87c10",
+    },
+    {
+      id: "dribbble",
+      label: "Dribbble",
+      desc: "Browse his visual and interaction design work.",
+      href: PROFILE.dribbble,
+      color: "#e858a8",
+      shadow: "#a8307c",
+    },
+    {
+      id: "site",
+      label: "danielvisual.com",
+      desc: "The full portfolio site, case studies and all.",
+      href: PROFILE.site,
+      color: "#30c890",
+      shadow: "#1c8860",
+    },
+  ];
+
+  if (!chosen) {
+    return (
+      <div>
+        <p style={{ marginBottom: 18, fontSize: 16 }}>Send word, traveler. Choose your route:</p>
+        <div style={{ display: "grid", gap: 12 }}>
+          {ROUTES.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => setChosen(r)}
+              style={{
+                background: "#142438",
+                border: `3px solid ${r.color}`,
+                borderRadius: 8,
+                padding: "16px 18px",
+                cursor: "pointer",
+                textAlign: "left",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+              }}
+            >
+              <div>
+                <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 12, color: r.color, marginBottom: 6 }}>
+                  {r.label}
+                </div>
+                <div style={{ fontSize: 14, color: "#c8c0a8" }}>{r.desc}</div>
+              </div>
+              <div style={{ fontSize: 20, color: r.color }}>▶</div>
+            </button>
+          ))}
+        </div>
+        <p style={{ marginTop: 16, fontSize: 12, color: "#8a8270", fontStyle: "italic" }}>
+          The Courier, standing nearby, has a clue if you'd rather discover this the long way.
+        </p>
       </div>
-      <p style={{ marginTop: 16, fontSize: 12, color: "#8a8270", fontStyle: "italic" }}>
-        The Courier, standing nearby, can also help you choose the best way to reach out.
-      </p>
+    );
+  }
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: chosen.color, marginBottom: 14 }}>
+        ▸ DEPARTING VIA {chosen.label.toUpperCase()}
+      </div>
+      <p style={{ fontSize: 16, marginBottom: 20 }}>{chosen.desc}</p>
+      <a href={chosen.href} target={chosen.id === "email" ? undefined : "_blank"} rel="noopener noreferrer">
+        <PixelButton style={{ background: chosen.color, boxShadow: `0 0 0 2px ${chosen.shadow}` }}>
+          CONTINUE →
+        </PixelButton>
+      </a>
+      <div style={{ marginTop: 18 }}>
+        <PixelButton small onClick={() => setChosen(null)} style={{ background: "#203854", boxShadow: "0 0 0 2px #3068a8" }}>
+          ← CHOOSE ANOTHER ROUTE
+        </PixelButton>
+      </div>
     </div>
   );
 }
@@ -1202,9 +1418,8 @@ const NPC_RESPONSES = {
   approach: "He treats every project like a system: research the real behavior, question the brief, then design and test the smallest change that moves the metric.",
   highlight: "Most recently, leading product design at Doctronic — shipping the first AI-authorized prescription refill flow in the US, covered by the Washington Post, Politico, and the Salt Lake Tribune.",
   education: "UC Davis for a B.A. in Media Technology and Chinese, then General Assembly's Product Design program and a UX Design course at Udacity to sharpen the craft.",
-  linkedin: `Right this way: ${PROFILE.linkedin}`,
-  email: `Best reached at ${PROFILE.email} or ${PROFILE.phone}.`,
-  dribbble: `Visual work lives here: ${PROFILE.dribbble}`,
+  clue: "The Courier leans in: \"Seek the building with the golden roof and the flag flying high near its chimney. Knock there, and the way to reach him will be revealed.\"",
+  reveal: `The Courier grins. "Smart traveler — you found it! Head into the Post Office to connect. You'll find all the routes to reach Daniel there. Safe travels."`,
 };
 
 function NpcDialogue({ npc, onClose }) {
@@ -1243,19 +1458,124 @@ function NpcDialogue({ npc, onClose }) {
    ============================================================ */
 
 function TitleScreen({ onContinue }) {
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onContinue();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onContinue]);
+
+  // Mini walking trainer sprite (simplified, for animation)
+  function MiniTrainer({ color, y, duration, delay, flip }) {
+    return (
+      <div style={{
+        position: "absolute",
+        top: `${y}%`,
+        left: flip ? "110%" : "-10%",
+        animation: `${flip ? "walkLeft" : "walkRight"} ${duration}s linear ${delay}s infinite`,
+        pointerEvents: "none",
+      }}>
+        <svg width="24" height="32" viewBox="0 0 32 46"
+          style={{ transform: flip ? "scaleX(-1)" : "none" }}>
+          <rect x="10.5" y="36" width="5" height="4" rx="1" fill="#283848" />
+          <rect x="16.5" y="36" width="5" height="4" rx="1" fill="#283848" />
+          <rect x="11" y="28" width="4.5" height="9" fill="#e0e0e0" />
+          <rect x="16.5" y="28" width="4.5" height="9" fill="#e0e0e0" />
+          <rect x="8" y="16" width="16" height="13" rx="3" fill={color} />
+          <rect x="5.5" y="18" width="4.5" height="9" rx="2" fill={color} />
+          <rect x="22" y="18" width="4.5" height="9" rx="2" fill={color} />
+          <rect x="9.5" y="4" width="13" height="13" rx="4" fill="#f0c89c" />
+          <rect x="8.5" y="6.5" width="15" height="4" rx="2" fill={color} />
+        </svg>
+      </div>
+    );
+  }
+
+  function MiniCritter({ kind, y, duration, delay, flip }) {
+    const art = {
+      glowpup: (
+        <svg width="20" height="16" viewBox="0 0 32 22">
+          <path d="M3 18 Q1 6 16 6 Q31 6 29 18 Q29 21 16 21 Q3 21 3 18Z" fill="#f0d850" />
+          <circle cx="12" cy="14" r="1.6" fill="#1a1208" />
+          <circle cx="20" cy="14" r="1.6" fill="#1a1208" />
+        </svg>
+      ),
+      inkdrop: (
+        <svg width="16" height="20" viewBox="0 0 32 27">
+          <path d="M16 2 Q26 14 24 20 Q22 26 16 26 Q10 26 8 20 Q6 14 16 2Z" fill="#5090e0" />
+          <circle cx="16" cy="17" r="3.5" fill="#fff" />
+          <circle cx="16" cy="17" r="2" fill="#1a1208" />
+        </svg>
+      ),
+      sproutling: (
+        <svg width="20" height="18" viewBox="0 0 32 27">
+          <ellipse cx="16" cy="17" rx="11" ry="8.5" fill="#58a850" />
+          <path d="M16 8 Q12 2 16 -1 Q20 2 16 8Z" fill="#3c8038" />
+          <circle cx="12" cy="17" r="1.6" fill="#1a1208" />
+          <circle cx="20" cy="17" r="1.6" fill="#1a1208" />
+        </svg>
+      ),
+      embercub: (
+        <svg width="20" height="18" viewBox="0 0 32 27">
+          <ellipse cx="15" cy="16" rx="11" ry="9" fill="#f07838" />
+          <path d="M25 14 Q30 11 28 7 Q26 11 23 12Z" fill="#ffd040" />
+          <circle cx="12" cy="17" r="1.6" fill="#1a1208" />
+          <circle cx="19" cy="17" r="1.6" fill="#1a1208" />
+        </svg>
+      ),
+    };
+    return (
+      <div style={{
+        position: "absolute",
+        top: `${y}%`,
+        left: flip ? "110%" : "-8%",
+        animation: `${flip ? "walkLeft" : "walkRight"} ${duration}s linear ${delay}s infinite`,
+        pointerEvents: "none",
+      }}>
+        <div style={{ transform: flip ? "scaleX(-1)" : "none" }}>
+          {art[kind]}
+        </div>
+      </div>
+    );
+  }
+
+  function MiniNpc({ y, duration, delay, flip }) {
+    return (
+      <div style={{
+        position: "absolute",
+        top: `${y}%`,
+        left: flip ? "110%" : "-10%",
+        animation: `${flip ? "walkLeft" : "walkRight"} ${duration}s linear ${delay}s infinite`,
+        pointerEvents: "none",
+      }}>
+        <svg width="22" height="30" viewBox="0 0 32 44"
+          style={{ transform: flip ? "scaleX(-1)" : "none" }}>
+          <rect x="9" y="20" width="14" height="18" rx="4" fill="#c89030" />
+          <rect x="9" y="20" width="14" height="6" fill="#ffe858" opacity="0.8" />
+          <rect x="10" y="6" width="12" height="12" rx="3" fill="#f0c89c" />
+          <path d="M9 9 Q16 -1 23 9 L23 13 Q16 6 9 13Z" fill="#ffe858" />
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
         width: "100%",
         height: "100%",
         minHeight: 480,
-        background: "linear-gradient(180deg, #2870c8 0%, #50a8e0 45%, #6bb05c 75%, #5fa050 100%)",
+        background: "linear-gradient(180deg, #1c1030 0%, #2c2048 100%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         fontFamily: "'Press Start 2P', monospace",
-        color: "#fffaf0",
+        color: "#f0ece0",
         gap: 16,
         position: "relative",
         overflow: "hidden",
@@ -1264,75 +1584,76 @@ function TitleScreen({ onContinue }) {
         boxSizing: "border-box",
       }}
     >
-      {/* fluffy cloud shapes for vibrancy */}
-      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} viewBox="0 0 400 250" preserveAspectRatio="none">
-        <ellipse cx="60" cy="40" rx="38" ry="14" fill="#ffffff" opacity="0.85" />
-        <ellipse cx="90" cy="34" rx="26" ry="11" fill="#ffffff" opacity="0.85" />
-        <ellipse cx="320" cy="60" rx="34" ry="12" fill="#ffffff" opacity="0.8" />
-        <ellipse cx="350" cy="54" rx="22" ry="9" fill="#ffffff" opacity="0.8" />
-        <ellipse cx="180" cy="25" rx="28" ry="10" fill="#ffffff" opacity="0.7" />
-      </svg>
+      {/* CRT scanlines */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none",
+        background: "repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 3px)" }} />
 
-      <h1
-        style={{
-          fontSize: "clamp(18px, 4.5vw, 32px)",
-          textShadow: "3px 3px 0 #1c4070, -1px -1px 0 #1c4070",
-          letterSpacing: 2,
-          zIndex: 1,
-          textAlign: "center",
-          color: "#ffe858",
-        }}
-      >
-        {GAME_TITLE.toUpperCase()}
+      {/* Animated game-preview sprites walking behind the UI */}
+      <MiniTrainer color="#3098e8" y={72} duration={12} delay={0} flip={false} />
+      <MiniTrainer color="#f04830" y={83} duration={9} delay={3} flip={true} />
+      <MiniTrainer color="#a858e0" y={78} duration={14} delay={6} flip={false} />
+      <MiniCritter kind="glowpup" y={75} duration={7} delay={1} flip={false} />
+      <MiniCritter kind="inkdrop" y={85} duration={10} delay={5} flip={true} />
+      <MiniCritter kind="sproutling" y={80} duration={8} delay={2} flip={true} />
+      <MiniCritter kind="embercub" y={70} duration={11} delay={8} flip={false} />
+      <MiniNpc y={76} duration={16} delay={4} flip={true} />
+
+      <style>{`
+        @keyframes walkRight { 0% { left: -15%; } 100% { left: 115%; } }
+        @keyframes walkLeft  { 0% { left: 115%; } 100% { left: -15%; } }
+      `}</style>
+
+      <h1 style={{
+        fontSize: "clamp(20px, 4.5vw, 34px)", letterSpacing: 3, zIndex: 1,
+        textAlign: "center", color: "#3ee0d8",
+        textShadow: "0 0 12px rgba(62,224,216,0.5)",
+      }}>
+        {PROFILE.name.toUpperCase()}
       </h1>
-      <p style={{ fontSize: "clamp(10px, 2vw, 14px)", color: "#fffaf0", zIndex: 1, textShadow: "2px 2px 0 #1c4070" }}>
-        {GAME_SUBTITLE}
+      <p style={{ fontSize: "clamp(10px, 1.8vw, 13px)", color: "#ffe858", zIndex: 1, letterSpacing: 1 }}>
+        LEAD PRODUCT DESIGNER · INTERACTION · VISUAL ARTS
       </p>
 
-      <div
-        style={{
-          zIndex: 1,
-          background: "rgba(12,24,40,0.55)",
-          border: "3px solid #fffaf0",
-          borderRadius: 6,
-          padding: "14px 18px",
-          maxWidth: 420,
-        }}
-      >
-        <p style={{ fontFamily: "'VT323', monospace", fontSize: 17, lineHeight: 1.5, margin: 0, textAlign: "center" }}>
+      <div style={{
+        zIndex: 1,
+        background: "rgba(12,8,24,0.75)",
+        border: "2px solid #4a3a70",
+        borderRadius: 6,
+        padding: "22px 26px",
+        maxWidth: 460,
+        width: "100%",
+        boxSizing: "border-box",
+        textAlign: "center",
+      }}>
+        <h2 style={{ fontSize: "clamp(13px, 2.4vw, 17px)", color: "#f0ece0", marginBottom: 16, letterSpacing: 1 }}>
+          {GAME_SUBTITLE_LINE}
+        </h2>
+        <p style={{ fontFamily: "'VT323', monospace", fontSize: 18, lineHeight: 1.5, margin: "0 0 20px", color: "#c8bcd8" }}>
           {GAME_DESCRIPTION}
         </p>
-      </div>
 
-      <div style={{ zIndex: 1, display: "grid", gap: 6, fontFamily: "'VT323', monospace", fontSize: 15, textAlign: "left" }}>
-        {GAME_FEATURES.map((f, i) => (
-          <div key={i} style={{ display: "flex", gap: 8, alignItems: "baseline" }}>
-            <span style={{ color: "#ffe858" }}>★</span>
-            <span>{f}</span>
-          </div>
-        ))}
-      </div>
+        <button
+          onClick={onContinue}
+          style={{
+            fontFamily: "'Press Start 2P', monospace",
+            fontSize: "clamp(11px, 2.2vw, 14px)",
+            color: "#0a0e1a",
+            background: "#3ee0d8",
+            border: "none",
+            boxShadow: "0 4px 0 #1c8078",
+            padding: "14px 30px",
+            cursor: "pointer",
+            borderRadius: 3,
+            marginBottom: 14,
+          }}
+        >
+          PRESS START
+        </button>
 
-      <button
-        onClick={onContinue}
-        style={{
-          fontFamily: "'Press Start 2P', monospace",
-          fontSize: "clamp(11px, 2.2vw, 15px)",
-          color: "#fffaf0",
-          background: "#f04830",
-          border: "none",
-          boxShadow: "0 0 0 3px #a82c18, inset 0 -4px 0 rgba(0,0,0,0.25)",
-          padding: "14px 30px",
-          cursor: "pointer",
-          zIndex: 1,
-          marginTop: 8,
-          animation: "pulse 1.4s ease-in-out infinite",
-          borderRadius: 3,
-        }}
-      >
-        ▶ PRESS START
-      </button>
-      <style>{`@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.85; transform: scale(1.03); } }`}</style>
+        <div style={{ fontFamily: "'VT323', monospace", fontSize: 13, color: "#6878a0", letterSpacing: 1 }}>
+          ▸ PRESS ENTER OR SPACE
+        </div>
+      </div>
     </div>
   );
 }
@@ -1361,18 +1682,25 @@ function TrainerPreview({ sprite }) {
 }
 
 function CharacterSelect({ onSelect }) {
-  const [hover, setHover] = useState(CHARACTERS[0].id);
-  const [confirming, setConfirming] = useState(null);
-  const active = CHARACTERS.find((c) => c.id === hover);
+  const [hoverIndex, setHoverIndex] = useState(0);
+  const active = CHARACTERS[hoverIndex];
 
-  function handleClick(c) {
-    if (confirming === c.id) {
-      onSelect(c);
-    } else {
-      setHover(c.id);
-      setConfirming(c.id);
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setHoverIndex((i) => (i - 1 + CHARACTERS.length) % CHARACTERS.length);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setHoverIndex((i) => (i + 1) % CHARACTERS.length);
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onSelect(CHARACTERS[hoverIndex]);
+      }
     }
-  }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [hoverIndex, onSelect]);
 
   return (
     <div
@@ -1405,13 +1733,14 @@ function CharacterSelect({ onSelect }) {
         CHOOSE YOUR HIRING PANEL MEMBER
       </h2>
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
-        {CHARACTERS.map((c) => (
+        {CHARACTERS.map((c, i) => (
           <button
             key={c.id}
-            onClick={() => handleClick(c)}
+            onClick={() => onSelect(c)}
+            onMouseEnter={() => setHoverIndex(i)}
             style={{
-              background: hover === c.id ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.2)",
-              border: hover === c.id ? `3px solid ${c.color}` : "3px solid rgba(255,255,255,0.25)",
+              background: hoverIndex === i ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.2)",
+              border: hoverIndex === i ? `3px solid ${c.color}` : "3px solid rgba(255,255,255,0.25)",
               borderRadius: 8,
               padding: 14,
               cursor: "pointer",
@@ -1426,9 +1755,6 @@ function CharacterSelect({ onSelect }) {
             <TrainerPreview sprite={c.sprite} />
             <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#fffaf0" }}>{c.name}</div>
             <div style={{ fontSize: 9, color: c.color, fontFamily: "'Press Start 2P', monospace", textAlign: "center" }}>{c.role}</div>
-            {confirming === c.id && (
-              <div style={{ fontSize: 9, color: "#ffe858", fontFamily: "'Press Start 2P', monospace" }}>TAP AGAIN ▸</div>
-            )}
           </button>
         ))}
       </div>
@@ -1445,7 +1771,7 @@ function CharacterSelect({ onSelect }) {
       >
         <p style={{ fontFamily: "'VT323', monospace", fontSize: 16, color: "#f0ece0", margin: 0 }}>{active.bio}</p>
       </div>
-      <p style={{ fontSize: 11, color: "#c8bcd8", fontFamily: "'VT323', monospace" }}>Tap a character, then tap again to confirm.</p>
+      <p style={{ fontSize: 11, color: "#c8bcd8", fontFamily: "'VT323', monospace" }}>◀ ▶ to choose, ENTER or SPACE to confirm — or just tap a character.</p>
     </div>
   );
 }
@@ -1454,11 +1780,184 @@ function CharacterSelect({ onSelect }) {
    MAIN GAME COMPONENT
    ============================================================ */
 
-const VIEWPORT_COLS = 16;
-const VIEWPORT_ROWS = 10;
 
-export default function App() {
-  const [phase, setPhase] = useState("title"); // title -> select -> playing
+
+/* ============================================================
+   ENDING SCREEN — thanks for playing, celebrating sprite, credits
+   ============================================================ */
+
+function CelebratingHero({ palette }) {
+  const p = palette || CHAR_PALETTES.systems;
+  return (
+    <svg width="64" height="84" viewBox="0 0 32 46" style={{ animation: "celebrate 0.6s ease-in-out infinite" }}>
+      <ellipse cx="16" cy="42" rx="9" ry="3" fill="rgba(0,0,0,0.25)" />
+      <rect x="10.5" y="34" width="5" height="4" rx="1" fill={p.shoe} />
+      <rect x="16.5" y="34" width="5" height="4" rx="1" fill={p.shoe} />
+      <rect x="11" y="27" width="4.5" height="9" fill={p.legs} />
+      <rect x="16.5" y="27" width="4.5" height="9" fill={p.legs} />
+      <rect x="8" y="14" width="16" height="14" rx="3" fill={p.shirt} />
+      <rect x="8" y="14" width="16" height="6" fill={p.shirtLight} opacity="0.85" />
+      {/* arms raised up in celebration */}
+      <rect x="2" y="2" width="4.5" height="14" rx="2" fill={p.shirt} transform="rotate(-20 4 9)" />
+      <rect x="25.5" y="2" width="4.5" height="14" rx="2" fill={p.shirt} transform="rotate(20 28 9)" />
+      <rect x="9.5" y="2" width="13" height="13" rx="4" fill={p.skin} />
+      <path d="M8.5 6 Q16 -4 23.5 6 L23.5 9 Q16 3 8.5 9Z" fill={p.hair} />
+      <rect x="8.5" y="4.5" width="15" height="4" rx="2" fill={p.cap} />
+      <rect x="14" y="1" width="4" height="3" rx="1" fill={p.capAccent} />
+      <path d="M11 8 Q13 10 15 8" stroke="#1a1208" strokeWidth="1.4" fill="none" />
+      <path d="M17 8 Q19 10 21 8" stroke="#1a1208" strokeWidth="1.4" fill="none" />
+      <style>{`@keyframes celebrate { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-6px) rotate(2deg); } }`}</style>
+    </svg>
+  );
+}
+
+function Confetti() {
+  const pieces = Array.from({ length: 14 }, (_, i) => ({
+    left: (i * 71) % 100,
+    delay: (i * 0.27) % 2,
+    color: ["#ffe858", "#3ee0d8", "#f04830", "#a858e0", "#5cd87c"][i % 5],
+  }));
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+      {pieces.map((p, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: `${p.left}%`,
+            top: "-10%",
+            width: 6,
+            height: 6,
+            background: p.color,
+            animation: `confettiFall 2.6s linear ${p.delay}s infinite`,
+          }}
+        />
+      ))}
+      <style>{`@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(420px) rotate(360deg); opacity: 0; } }`}</style>
+    </div>
+  );
+}
+
+const CREDITS_LINES = [
+  "DESIGN QUEST",
+  "",
+  "Made by Daniel Tieu",
+  "danielvisual.com",
+  "",
+  "Lead Product Designer",
+  "Doctronic · GoodRx · Estée Lauder",
+  "Amyris · Sephora",
+  "",
+  "Thanks for playing!",
+  "",
+  "See you again soon.",
+];
+
+function EndingScreen({ palette, onReturnToTitle }) {
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onReturnToTitle();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onReturnToTitle]);
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "100%",
+        minHeight: 480,
+        background: "linear-gradient(180deg, #1c1030 0%, #2c2048 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: 6,
+        boxSizing: "border-box",
+      }}
+    >
+      {/* Top portion: celebrating character + confetti */}
+      <div style={{ position: "relative", width: "100%", height: "38%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Confetti />
+        <CelebratingHero palette={palette} />
+      </div>
+
+      <h2
+        style={{
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: "clamp(13px, 2.6vw, 18px)",
+          color: "#ffe858",
+          margin: "4px 0 12px",
+          textAlign: "center",
+          zIndex: 1,
+        }}
+      >
+        THANKS FOR PLAYING!
+      </h2>
+
+      {/* Scrolling credits */}
+      <div
+        style={{
+          position: "relative",
+          flex: 1,
+          width: "100%",
+          overflow: "hidden",
+          maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            top: "100%",
+            animation: "scrollCredits 14s linear infinite",
+            fontFamily: "'VT323', monospace",
+            textAlign: "center",
+            color: "#f0ece0",
+          }}
+        >
+          {CREDITS_LINES.map((line, i) => (
+            <div key={i} style={{ fontSize: line === "DESIGN QUEST" ? 22 : 17, color: line === "DESIGN QUEST" ? "#3ee0d8" : "#f0ece0", margin: "10px 0" }}>
+              {line || "\u00A0"}
+            </div>
+          ))}
+        </div>
+        <style>{`@keyframes scrollCredits { 0% { top: 100%; } 100% { top: -220%; } }`}</style>
+      </div>
+
+      <button
+        onClick={onReturnToTitle}
+        style={{
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: "clamp(10px, 2vw, 13px)",
+          color: "#0a0e1a",
+          background: "#3ee0d8",
+          border: "none",
+          boxShadow: "0 4px 0 #1c8078",
+          padding: "12px 26px",
+          cursor: "pointer",
+          borderRadius: 3,
+          marginBottom: 22,
+          zIndex: 1,
+        }}
+      >
+        RETURN TO MAIN MENU
+      </button>
+      <div style={{ fontFamily: "'VT323', monospace", fontSize: 12, color: "#6878a0", marginBottom: 16, zIndex: 1 }}>
+        ▸ PRESS ENTER OR SPACE
+      </div>
+    </div>
+  );
+}
+
+
+export default function PortfolioGame() {
+  const [phase, setPhase] = useState("title"); // title -> select -> playing -> ending
   const [character, setCharacter] = useState(null);
   const [pos, setPos] = useState(START_POS);
   const [dir, setDir] = useState("down");
@@ -1469,9 +1968,43 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [critters, setCritters] = useState(CRITTER_SPAWN.map((c) => ({ ...c, bounce: false })));
   const [critterQuip, setCritterQuip] = useState(null);
+  const [approachPopup, setApproachPopup] = useState(null);
   const walkTimeout = useRef(null);
+  const popupTimeout = useRef(null);
+  const viewportRef = useRef(null);
+  const [viewportSize, setViewportSize] = useState({ w: 512, h: 320 });
+
+  // Zone-level navigation state — lives here so Modal props can reference it
+  // without any secondary keydown listeners competing with Modal's own handler.
+  const [arcadeFocus, setArcadeFocus] = useState(0);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const [towerIndex, setTowerIndex] = useState(0);
+  const [towerAnimKey, setTowerAnimKey] = useState(0);
+
+  const galleryPrev = useCallback(() => setGalleryIndex((i) => (i - 1 + VISUAL_PROJECTS.length) % VISUAL_PROJECTS.length), []);
+  const galleryNext = useCallback(() => setGalleryIndex((i) => (i + 1) % VISUAL_PROJECTS.length), []);
+  const towerPrev = useCallback(() => { setTowerIndex((i) => (i - 1 + SKILLS.length) % SKILLS.length); setTowerAnimKey((k) => k + 1); }, []);
+  const towerNext = useCallback(() => { setTowerIndex((i) => (i + 1) % SKILLS.length); setTowerAnimKey((k) => k + 1); }, []);
+  const arcadePrev = useCallback(() => setArcadeFocus((i) => (i - 1 + CASE_STUDIES.length) % CASE_STUDIES.length), []);
+  const arcadeNext = useCallback(() => setArcadeFocus((i) => (i + 1) % CASE_STUDIES.length), []);
+  const arcadeEnter = useCallback(() => setSelectedProject(CASE_STUDIES[arcadeFocus]), [arcadeFocus]);
 
   const anyModalOpen = !!(activeZone || selectedProject || activeNpc || menuOpen);
+
+  // Measure the actual rendered viewport so the camera can clamp correctly
+  // against real pixel dimensions instead of a fixed tile count — this is
+  // what prevents blank space from showing past the map edges.
+  useEffect(() => {
+    if (phase !== "playing" || !viewportRef.current) return;
+    const el = viewportRef.current;
+    function measure() {
+      setViewportSize({ w: el.clientWidth, h: el.clientHeight });
+    }
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [phase]);
 
   const nearestBuilding = useCallback((p) => {
     for (const b of BUILDINGS) {
@@ -1494,8 +2027,18 @@ export default function App() {
   const [nearNpc, setNearNpc] = useState(null);
 
   useEffect(() => {
-    setNearBuilding(nearestBuilding(pos));
-    setNearNpc(nearestNpc(pos));
+    const b = nearestBuilding(pos);
+    const n = nearestNpc(pos);
+    setNearBuilding(b);
+    setNearNpc(n);
+
+    // Trigger a brief name popup the moment the player newly approaches
+    const newTarget = n ? { kind: "npc", label: n.name } : b ? { kind: "building", label: `${b.label} — ${b.sub}` } : null;
+    if (newTarget) {
+      setApproachPopup(newTarget);
+      clearTimeout(popupTimeout.current);
+      popupTimeout.current = setTimeout(() => setApproachPopup(null), 2200);
+    }
   }, [pos, nearestBuilding, nearestNpc]);
 
   const isBlocked = useCallback((x, y) => {
@@ -1564,15 +2107,16 @@ export default function App() {
     setTimeout(() => setCritterQuip(null), 2200);
   }, []);
 
+  // Movement + interaction keys — arrows only (no WASD), Enter/Space to interact, M for menu
   useEffect(() => {
     if (phase !== "playing") return;
     function onKey(e) {
       if (anyModalOpen) return;
       switch (e.key) {
-        case "ArrowUp": case "w": case "W": e.preventDefault(); move(0, -1, "up"); break;
-        case "ArrowDown": case "s": case "S": e.preventDefault(); move(0, 1, "down"); break;
-        case "ArrowLeft": case "a": case "A": e.preventDefault(); move(-1, 0, "left"); break;
-        case "ArrowRight": case "d": case "D": e.preventDefault(); move(1, 0, "right"); break;
+        case "ArrowUp": e.preventDefault(); move(0, -1, "up"); break;
+        case "ArrowDown": e.preventDefault(); move(0, 1, "down"); break;
+        case "ArrowLeft": e.preventDefault(); move(-1, 0, "left"); break;
+        case "ArrowRight": e.preventDefault(); move(1, 0, "right"); break;
         case "Enter": case " ": e.preventDefault(); interact(); break;
         case "m": case "M": setMenuOpen((s) => !s); break;
         default: break;
@@ -1590,23 +2134,56 @@ export default function App() {
     return () => { document.head.removeChild(link); };
   }, []);
 
+  function restartGame() {
+    setPos(START_POS);
+    setDir("down");
+    setActiveZone(null);
+    setSelectedProject(null);
+    setActiveNpc(null);
+    setMenuOpen(false);
+    setCritters(CRITTER_SPAWN.map((c) => ({ ...c, bounce: false })));
+    setPhase("select");
+  }
+
+  function exitGame() {
+    setMenuOpen(false);
+    setPhase("ending");
+  }
+
+  function returnToTitle() {
+    setPos(START_POS);
+    setDir("down");
+    setCharacter(null);
+    setActiveZone(null);
+    setSelectedProject(null);
+    setActiveNpc(null);
+    setMenuOpen(false);
+    setPhase("title");
+  }
+
   const palette = character ? CHAR_PALETTES[character.sprite] : CHAR_PALETTES.systems;
 
   const zoneContent = {
-    arcade: <ArcadeContent onSelectProject={setSelectedProject} />,
+    arcade: <ArcadeContent focusIndex={arcadeFocus} onFocusPrev={arcadePrev} onFocusNext={arcadeNext} onSelectProject={setSelectedProject} />,
     house: <HouseContent />,
-    tower: <TowerContent />,
+    tower: <TowerContent index={towerIndex} animKey={towerAnimKey} onPrev={towerPrev} onNext={towerNext} />,
     library: <LibraryContent />,
     post: <PostContent />,
-    gallery: <GalleryContent />,
+    gallery: <GalleryContent index={galleryIndex} onPrev={galleryPrev} onNext={galleryNext} />,
   };
+
+  // Per-zone keyboard wiring — all routed through Modal's single listener
+  const zoneArrowLeft  = { arcade: arcadePrev,  gallery: galleryPrev, tower: towerPrev  };
+  const zoneArrowRight = { arcade: arcadeNext,  gallery: galleryNext, tower: towerNext  };
+  const zoneEnter      = { arcade: arcadeEnter };
+
   const zoneTitle = {
     arcade: "ARCADE — UX CASE STUDIES",
     house: "COTTAGE — ABOUT",
     tower: "TOWER — SKILLS",
     library: "LIBRARY — RESUME",
     post: "POST OFFICE — CONTACT",
-    gallery: "GALLERY — VISUAL & PLAY",
+    gallery: "GALLERY — BRANDING & CAMPAIGNS",
   };
 
   if (phase === "title") {
@@ -1628,9 +2205,26 @@ export default function App() {
       </div>
     );
   }
+  if (phase === "ending") {
+    return (
+      <div style={{ width: "100%", height: "100%", minHeight: 520 }}>
+        <EndingScreen palette={palette} onReturnToTitle={returnToTitle} />
+      </div>
+    );
+  }
 
-  const camX = Math.max(0, Math.min(COLS - VIEWPORT_COLS, pos.x - Math.floor(VIEWPORT_COLS / 2)));
-  const camY = Math.max(0, Math.min(ROWS - VIEWPORT_ROWS, pos.y - Math.floor(VIEWPORT_ROWS / 2)));
+  // Camera clamps against the ACTUAL measured viewport size (in tiles),
+  // not a hardcoded constant — this is what keeps the map edge-to-edge
+  // with no exposed blank space regardless of container size. If the
+  // viewport is ever larger than the world itself, center the world
+  // instead of trying to pan past its edges (which would expose blank
+  // space outside the world bounds).
+  const viewportColsActual = Math.max(1, viewportSize.w / TILE);
+  const viewportRowsActual = Math.max(1, viewportSize.h / TILE);
+  const rangeX = COLS - viewportColsActual;
+  const rangeY = ROWS - viewportRowsActual;
+  const camX = rangeX <= 0 ? rangeX / 2 : Math.max(0, Math.min(rangeX, pos.x + 0.5 - viewportColsActual / 2));
+  const camY = rangeY <= 0 ? rangeY / 2 : Math.max(0, Math.min(rangeY, pos.y + 0.5 - viewportRowsActual / 2));
 
   return (
     <div style={{ width: "100%", height: "100%", fontFamily: "'VT323', monospace", background: "#0c1828", borderRadius: 6, padding: 8, boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
@@ -1657,8 +2251,9 @@ export default function App() {
         </button>
       </div>
 
-      {/* Game viewport — fills remaining space, controls float on top */}
+      {/* Game viewport — fills remaining space, no exposed map edges */}
       <div
+        ref={viewportRef}
         style={{
           position: "relative",
           width: "100%",
@@ -1668,66 +2263,61 @@ export default function App() {
           border: "3px solid #3068a8",
           boxShadow: "0 0 0 3px #0c1828",
           borderRadius: 4,
+          background: "#5fa050",
         }}
       >
         <div
           style={{
             position: "absolute",
-            left: 0,
-            top: 0,
-            width: "100%",
-            height: "100%",
+            left: `${-camX * TILE}px`,
+            top: `${-camY * TILE}px`,
+            width: COLS * TILE,
+            height: ROWS * TILE,
+            transition: "left 0.12s linear, top 0.12s linear",
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: `${-camX * TILE}px`,
-              top: `${-camY * TILE}px`,
-              width: COLS * TILE,
-              height: ROWS * TILE,
-              transition: "left 0.12s linear, top 0.12s linear",
-              transform: `scale(${1})`,
-            }}
-          >
-            <Ground />
-            {MOUNTAINS.map((m, i) => <Mountain key={i} x={m.x} y={m.y} w={m.w} />)}
-            {ROCKS.map((r, i) => <Rock key={i} x={r.x} y={r.y} />)}
-            {TREES.map((t, i) => <Tree key={i} x={t.x} y={t.y} />)}
-            {BUILDINGS.map((b) => (
-              <div key={b.id} onClick={() => setActiveZone(b.id)} style={{ cursor: "pointer" }} title={`Enter ${b.label}`}>
-                <Building b={b} active={nearBuilding?.id === b.id} />
-              </div>
-            ))}
-            {NPCS.map((n) => (
-              <NpcSprite key={n.id} x={n.x} y={n.y} palette={n.palette} onTap={() => setActiveNpc(n)} active={nearNpc?.id === n.id} />
-            ))}
-            {critters.map((c) => (
-              <Critter key={c.id} kind={c.kind} x={c.x} y={c.y} bounce={c.bounce} onTap={() => tapCritter(c.id)} />
-            ))}
-            <Hero x={pos.x} y={pos.y} dir={dir} walking={walking} palette={palette} />
-          </div>
+          <Ground />
+          {MOUNTAINS.map((m, i) => <Mountain key={i} x={m.x} y={m.y} w={m.w} />)}
+          {ROCKS.map((r, i) => <Rock key={i} x={r.x} y={r.y} />)}
+          {TREES.map((t, i) => <Tree key={i} x={t.x} y={t.y} />)}
+          {BUILDINGS.map((b) => (
+            <div key={b.id} onClick={() => setActiveZone(b.id)} style={{ cursor: "pointer" }} title={`Enter ${b.label}`}>
+              <Building b={b} active={nearBuilding?.id === b.id} />
+            </div>
+          ))}
+          {NPCS.map((n) => (
+            <NpcSprite key={n.id} x={n.x} y={n.y} palette={n.palette} onTap={() => setActiveNpc(n)} active={nearNpc?.id === n.id} />
+          ))}
+          {critters.map((c) => (
+            <Critter key={c.id} kind={c.kind} x={c.x} y={c.y} bounce={c.bounce} onTap={() => tapCritter(c.id)} />
+          ))}
+          <Hero x={pos.x} y={pos.y} dir={dir} walking={walking} palette={palette} />
         </div>
 
-        {(nearBuilding || nearNpc) && !anyModalOpen && (
+        {/* Approach popup — shows briefly when newly arriving near a building or NPC */}
+        {approachPopup && !anyModalOpen && (
           <div
             style={{
               position: "absolute",
               left: "50%",
               top: 10,
               transform: "translateX(-50%)",
-              background: "rgba(12,24,40,0.85)",
+              background: "rgba(12,24,40,0.92)",
               color: "#ffe858",
               fontFamily: "'Press Start 2P', monospace",
               fontSize: 9,
-              padding: "6px 10px",
+              padding: "8px 12px",
               borderRadius: 3,
               border: "2px solid #3068a8",
               whiteSpace: "nowrap",
               zIndex: 6,
+              textAlign: "center",
             }}
           >
-            {nearNpc ? `PRESS A TO TALK TO ${nearNpc.name.toUpperCase()}` : `PRESS A TO ENTER ${nearBuilding.label.toUpperCase()}`}
+            <div>{approachPopup.label}</div>
+            <div style={{ fontSize: 7, color: "#70c8ff", marginTop: 3 }}>
+              PRESS ENTER OR SPACE TO {approachPopup.kind === "npc" ? "TALK" : "ENTER"}
+            </div>
           </div>
         )}
 
@@ -1736,7 +2326,7 @@ export default function App() {
             style={{
               position: "absolute",
               left: "50%",
-              top: 10,
+              bottom: 16,
               transform: "translateX(-50%)",
               background: "rgba(12,24,40,0.92)",
               color: "#5cd87c",
@@ -1753,46 +2343,32 @@ export default function App() {
           </div>
         )}
 
-        {/* Floating overlay controls — D-pad bottom-left, A button bottom-right.
-            No dedicated control row; map fills the rest of the space. */}
+        {/* Floating D-pad only — no A button; players use Enter/Space for actions */}
         <div style={{ position: "absolute", left: 10, bottom: 10, zIndex: 7 }}>
           <DPad onMove={move} />
         </div>
-        <button
-          onClick={interact}
-          style={{
-            position: "absolute",
-            right: 14,
-            bottom: 14,
-            zIndex: 7,
-            width: 52,
-            height: 52,
-            borderRadius: "50%",
-            fontFamily: "'Press Start 2P', monospace",
-            fontSize: 16,
-            color: "#fffaf0",
-            background: "rgba(48,152,232,0.88)",
-            border: "none",
-            boxShadow: "0 0 0 3px rgba(28,104,168,0.9), 0 2px 6px rgba(0,0,0,0.4)",
-            cursor: "pointer",
-          }}
-        >
-          A
-        </button>
       </div>
 
       {menuOpen && (
-        <Modal title="MENU" onClose={() => setMenuOpen(false)}>
+        <Modal
+          title="MENU"
+          onClose={() => setMenuOpen(false)}
+          onEnter={() => setMenuOpen(false)}
+          onArrowLeft={() => { setMenuOpen(false); restartGame(); }}
+          onArrowRight={() => { setMenuOpen(false); exitGame(); }}
+        >
           <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", marginBottom: 10 }}>CONTROLS</h3>
           <div style={{ display: "grid", gap: 8, marginBottom: 18, fontSize: 14 }}>
-            <div><b style={{ color: "#70c8ff" }}>Move:</b> Arrow Keys / WASD, or the floating D-pad</div>
-            <div><b style={{ color: "#70c8ff" }}>Interact / Talk:</b> Enter, Space, or the floating A button — when close to a building or NPC</div>
-            <div><b style={{ color: "#70c8ff" }}>Open this menu:</b> M, or the menu button top-right</div>
-            <div><b style={{ color: "#70c8ff" }}>Close any window:</b> Esc</div>
-            <div>You can also tap buildings, NPCs, and critters directly.</div>
+            <div><b style={{ color: "#70c8ff" }}>Move:</b> Arrow Keys, or the floating D-pad</div>
+            <div><b style={{ color: "#70c8ff" }}>Interact / Talk:</b> Enter or Space — when close to a building or NPC</div>
+            <div><b style={{ color: "#70c8ff" }}>Scroll long text:</b> ▲ ▼ inside any window</div>
+            <div><b style={{ color: "#70c8ff" }}>Browse carousels:</b> ◀ ▶ in Tower and Gallery</div>
+            <div><b style={{ color: "#70c8ff" }}>Navigate case studies:</b> ▲ ▼ + Enter in the Arcade</div>
+            <div><b style={{ color: "#70c8ff" }}>Open this menu:</b> M or menu button top-right</div>
+            <div><b style={{ color: "#70c8ff" }}>Close any window:</b> Esc · Enter</div>
           </div>
           <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", marginBottom: 10 }}>QUICK TRAVEL</h3>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
             {BUILDINGS.map((b) => (
               <PixelButton
                 key={b.id}
@@ -1804,11 +2380,27 @@ export default function App() {
               </PixelButton>
             ))}
           </div>
+          <h3 style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858", marginBottom: 10 }}>GAME</h3>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <PixelButton small onClick={restartGame} style={{ background: "#3098e8", boxShadow: "0 0 0 2px #1c68a8" }}>
+              ↺ RESTART [◀]
+            </PixelButton>
+            <PixelButton small onClick={exitGame} style={{ background: "#e04848", boxShadow: "0 0 0 2px #a02828" }}>
+              ✕ EXIT [▶]
+            </PixelButton>
+          </div>
         </Modal>
       )}
 
       {activeZone && (
-        <Modal title={zoneTitle[activeZone]} onClose={() => setActiveZone(null)} wide={activeZone === "arcade" || activeZone === "library"}>
+        <Modal
+          title={zoneTitle[activeZone]}
+          onClose={() => setActiveZone(null)}
+          wide={activeZone === "arcade" || activeZone === "library" || activeZone === "tower"}
+          onEnter={zoneEnter[activeZone] || undefined}
+          onArrowLeft={zoneArrowLeft[activeZone] || undefined}
+          onArrowRight={zoneArrowRight[activeZone] || undefined}
+        >
           {zoneContent[activeZone]}
         </Modal>
       )}
