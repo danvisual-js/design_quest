@@ -1,4 +1,28 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Component } from "react";
+
+/* ============================================================
+   ERROR BOUNDARY — catches any runtime crash and shows a
+   recovery screen instead of a blank white page.
+   ============================================================ */
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ width: "100vw", height: "100dvh", background: "#0c1828", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#f0ece0", fontFamily: "monospace", padding: 24, boxSizing: "border-box", textAlign: "center" }}>
+          <div style={{ fontSize: 28, marginBottom: 16 }}>⚠</div>
+          <div style={{ fontSize: 14, marginBottom: 12, color: "#ffe858" }}>Design Quest failed to load</div>
+          <div style={{ fontSize: 11, color: "#8a8270", marginBottom: 24, maxWidth: 400 }}>{String(this.state.error)}</div>
+          <button onClick={() => this.setState({ error: null })} style={{ fontFamily: "monospace", fontSize: 13, background: "#3ee0d8", border: "none", padding: "10px 20px", cursor: "pointer", borderRadius: 3 }}>
+            Try again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 /* ============================================================
    PORTFOLIO DATA — edit this section to update content
@@ -859,48 +883,46 @@ function PixelButton({ children, onClick, style, small }) {
   );
 }
 
-// Tracks which Modal instances are currently mounted, in mount order, so
-// that when modals are stacked (e.g. a project detail opened on top of the
-// Arcade list), only the topmost one responds to keyboard input — otherwise
-// a single keypress would affect every layer at once.
-let modalStackCounter = 0;
-const modalStack = [];
+// Modal stack — tracks mounted Modal instances in mount order so only the
+// topmost one handles keyboard input. Uses a Map keyed by id → insertion
+// order so we can find the "top" reliably even under React Strict Mode's
+// intentional double-mount (each Modal cleans up its own entry on unmount).
+let _modalIdSeq = 0;
+const _modalRegistry = new Map(); // id → true, insertion order = mount order
+
+function _modalPush(id) { _modalRegistry.set(id, true); }
+function _modalPop(id) { _modalRegistry.delete(id); }
+function _modalIsTop(id) {
+  const keys = [..._modalRegistry.keys()];
+  return keys[keys.length - 1] === id;
+}
 
 function Modal({ title, onClose, children, wide, onEnter, onArrowLeft, onArrowRight }) {
   const idRef = useRef(null);
   if (idRef.current === null) {
-    idRef.current = ++modalStackCounter;
+    idRef.current = ++_modalIdSeq;
   }
   const bodyRef = useRef(null);
 
   useEffect(() => {
-    modalStack.push(idRef.current);
-    return () => {
-      const i = modalStack.indexOf(idRef.current);
-      if (i !== -1) modalStack.splice(i, 1);
-    };
+    _modalPush(idRef.current);
+    return () => _modalPop(idRef.current);
   }, []);
 
   useEffect(() => {
     function onKey(e) {
-      const isTop = modalStack[modalStack.length - 1] === idRef.current;
-      if (!isTop) return;
+      if (!_modalIsTop(idRef.current)) return;
       switch (e.key) {
         case "Escape":
           e.preventDefault();
           onClose();
           break;
         case "Enter":
-          // Enter confirms/closes a modal by default unless the modal supplies
-          // its own onEnter handler (e.g. a sub-flow that wants Enter to advance
-          // a step instead of closing outright).
           e.preventDefault();
           if (onEnter) onEnter();
           else onClose();
           break;
         case "ArrowUp":
-          // Up/Down always scroll the modal body — this is what makes long
-          // case-study and resume text keyboard-navigable.
           e.preventDefault();
           if (bodyRef.current) bodyRef.current.scrollBy({ top: -64, behavior: "smooth" });
           break;
@@ -909,8 +931,6 @@ function Modal({ title, onClose, children, wide, onEnter, onArrowLeft, onArrowRi
           if (bodyRef.current) bodyRef.current.scrollBy({ top: 64, behavior: "smooth" });
           break;
         case "ArrowLeft":
-          // Left/Right are free for the modal's own content to claim — used
-          // by carousels (Gallery) and stat navigation (Tower).
           if (onArrowLeft) { e.preventDefault(); onArrowLeft(); }
           break;
         case "ArrowRight":
@@ -1956,7 +1976,7 @@ function EndingScreen({ palette, onReturnToTitle }) {
 }
 
 
-export default function PortfolioGame() {
+function PortfolioGame() {
   const [phase, setPhase] = useState("title"); // title -> select -> playing -> ending
   const [character, setCharacter] = useState(null);
   const [pos, setPos] = useState(START_POS);
@@ -1972,7 +1992,10 @@ export default function PortfolioGame() {
   const walkTimeout = useRef(null);
   const popupTimeout = useRef(null);
   const viewportRef = useRef(null);
-  const [viewportSize, setViewportSize] = useState({ w: window.innerWidth, h: window.innerHeight });
+  const [viewportSize, setViewportSize] = useState(() => ({
+    w: typeof window !== "undefined" ? window.innerWidth : 800,
+    h: typeof window !== "undefined" ? window.innerHeight : 600,
+  }));
 
   // Zone-level navigation state — lives here so Modal props can reference it
   // without any secondary keydown listeners competing with Modal's own handler.
@@ -2123,12 +2146,18 @@ export default function PortfolioGame() {
     return () => window.removeEventListener("keydown", onKey);
   }, [phase, move, interact, anyModalOpen]);
 
+  // Load pixel fonts — uses a style @import rather than a <link> element
+  // so React Strict Mode's double-mount/unmount cycle can't cause a
+  // NotFoundError from removeChild on a node that was already removed.
   useEffect(() => {
-    const link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-    return () => { document.head.removeChild(link); };
+    const id = "design-quest-fonts";
+    if (!document.getElementById(id)) {
+      const style = document.createElement("style");
+      style.id = id;
+      style.textContent = "@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');";
+      document.head.appendChild(style);
+    }
+    // No cleanup — fonts are global and should persist for the page lifetime.
   }, []);
 
   function restartGame() {
@@ -2210,20 +2239,6 @@ export default function PortfolioGame() {
     );
   }
 
-  // Separate state for the game viewport div's actual pixel size.
-  // Used for camera clamping — needs to be the div dimensions, not window,
-  // since the HUD and padding reduce the available game area.
-  const [vpDivSize, setVpDivSize] = useState({ w: 0, h: 0 });
-  useEffect(() => {
-    if (phase !== "playing" || !viewportRef.current) return;
-    const el = viewportRef.current;
-    function measure() { setVpDivSize({ w: el.clientWidth, h: el.clientHeight }); }
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [phase]);
-
   // tileScale: target a readable tile pixel size on every screen.
   // We don't try to fit the whole 36×24 world at once — the camera scrolls it.
   // Instead, make tiles as large as they can be while still showing at least
@@ -2301,38 +2316,48 @@ export default function PortfolioGame() {
           background: "#5fa050",
         }}
       >
-        {/* World container: zoom scales the entire layout subtree so all the
-            absolute pixel positions (left, top, width, height) work correctly
-            at any screen size. Unlike transform:scale, zoom doesn't detach the
-            element from normal layout flow, so overflow:hidden on the parent
-            clips at exactly the right pixel boundary on every screen. */}
-        <div
-          style={{
-            position: "absolute",
-            left: `${-camX * TILE}px`,
-            top: `${-camY * TILE}px`,
-            width: COLS * TILE,
-            height: ROWS * TILE,
-            transition: "left 0.12s linear, top 0.12s linear",
-            zoom: tileScale,
-          }}
-        >
-          <Ground />
-          {MOUNTAINS.map((m, i) => <Mountain key={i} x={m.x} y={m.y} w={m.w} />)}
-          {ROCKS.map((r, i) => <Rock key={i} x={r.x} y={r.y} />)}
-          {TREES.map((t, i) => <Tree key={i} x={t.x} y={t.y} />)}
-          {BUILDINGS.map((b) => (
-            <div key={b.id} onClick={() => setActiveZone(b.id)} style={{ cursor: "pointer" }} title={`Enter ${b.label}`}>
-              <Building b={b} active={nearBuilding?.id === b.id} />
-            </div>
-          ))}
-          {NPCS.map((n) => (
-            <NpcSprite key={n.id} x={n.x} y={n.y} palette={n.palette} onTap={() => setActiveNpc(n)} active={nearNpc?.id === n.id} />
-          ))}
-          {critters.map((c) => (
-            <Critter key={c.id} kind={c.kind} x={c.x} y={c.y} bounce={c.bounce} onTap={() => tapCritter(c.id)} />
-          ))}
-          <Hero x={pos.x} y={pos.y} dir={dir} walking={walking} palette={palette} />
+        {/* Clip wrapper: sized to actual viewport pixels so overflow:hidden
+            cuts at exactly the right edge on every browser including Firefox.
+            The scale div inside renders the world at native tile coordinates
+            then scales it up/down — transform:scale with transformOrigin
+            top-left so the top-left corner stays anchored. */}
+        <div style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: vpW,
+          height: vpH,
+          overflow: "hidden",
+        }}>
+          <div
+            style={{
+              position: "absolute",
+              left: `${-camX * TILE}px`,
+              top: `${-camY * TILE}px`,
+              width: COLS * TILE,
+              height: ROWS * TILE,
+              transition: "left 0.12s linear, top 0.12s linear",
+              transform: `scale(${tileScale})`,
+              transformOrigin: "top left",
+            }}
+          >
+            <Ground />
+            {MOUNTAINS.map((m, i) => <Mountain key={i} x={m.x} y={m.y} w={m.w} />)}
+            {ROCKS.map((r, i) => <Rock key={i} x={r.x} y={r.y} />)}
+            {TREES.map((t, i) => <Tree key={i} x={t.x} y={t.y} />)}
+            {BUILDINGS.map((b) => (
+              <div key={b.id} onClick={() => setActiveZone(b.id)} style={{ cursor: "pointer" }} title={`Enter ${b.label}`}>
+                <Building b={b} active={nearBuilding?.id === b.id} />
+              </div>
+            ))}
+            {NPCS.map((n) => (
+              <NpcSprite key={n.id} x={n.x} y={n.y} palette={n.palette} onTap={() => setActiveNpc(n)} active={nearNpc?.id === n.id} />
+            ))}
+            {critters.map((c) => (
+              <Critter key={c.id} kind={c.kind} x={c.x} y={c.y} bounce={c.bounce} onTap={() => tapCritter(c.id)} />
+            ))}
+            <Hero x={pos.x} y={pos.y} dir={dir} walking={walking} palette={palette} />
+          </div>
         </div>
 
         {/* Approach popup — shows briefly when newly arriving near a building or NPC */}
@@ -2488,3 +2513,17 @@ function DPad({ onMove }) {
     </div>
   );
 }
+
+/* ============================================================
+   WRAPPED EXPORT — error boundary + works whether file is named
+   PortfolioGame.jsx OR App.jsx (paste-into-App workflow).
+   ============================================================ */
+function App() {
+  return (
+    <ErrorBoundary>
+      <PortfolioGame />
+    </ErrorBoundary>
+  );
+}
+
+export default App;
