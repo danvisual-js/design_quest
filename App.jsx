@@ -1568,7 +1568,7 @@ function TitleScreen({ onContinue }) {
       style={{
         width: "100%",
         height: "100%",
-        minHeight: 480,
+        minHeight: "100dvh",
         background: "linear-gradient(180deg, #1c1030 0%, #2c2048 100%)",
         display: "flex",
         flexDirection: "column",
@@ -1707,7 +1707,7 @@ function CharacterSelect({ onSelect }) {
       style={{
         width: "100%",
         height: "100%",
-        minHeight: 480,
+        minHeight: "100dvh",
         background: "linear-gradient(180deg, #2c2048 0%, #402c60 60%, #503080 100%)",
         display: "flex",
         flexDirection: "column",
@@ -1870,7 +1870,7 @@ function EndingScreen({ palette, onReturnToTitle }) {
       style={{
         width: "100%",
         height: "100%",
-        minHeight: 480,
+        minHeight: "100dvh",
         background: "linear-gradient(180deg, #1c1030 0%, #2c2048 100%)",
         display: "flex",
         flexDirection: "column",
@@ -2188,14 +2188,14 @@ export default function PortfolioGame() {
 
   if (phase === "title") {
     return (
-      <div style={{ width: "100%", height: "100%", minHeight: 520 }}>
+      <div style={{ width: "100vw", height: "100dvh" }}>
         <TitleScreen onContinue={() => setPhase("select")} />
       </div>
     );
   }
   if (phase === "select") {
     return (
-      <div style={{ width: "100%", height: "100%", minHeight: 520 }}>
+      <div style={{ width: "100vw", height: "100dvh" }}>
         <CharacterSelect
           onSelect={(c) => {
             setCharacter(c);
@@ -2207,37 +2207,58 @@ export default function PortfolioGame() {
   }
   if (phase === "ending") {
     return (
-      <div style={{ width: "100%", height: "100%", minHeight: 520 }}>
+      <div style={{ width: "100vw", height: "100dvh" }}>
         <EndingScreen palette={palette} onReturnToTitle={returnToTitle} />
       </div>
     );
   }
 
-  // Camera clamps against the ACTUAL measured viewport size (in tiles),
-  // not a hardcoded constant — this is what keeps the map edge-to-edge
-  // with no exposed blank space regardless of container size. If the
-  // viewport is ever larger than the world itself, center the world
-  // instead of trying to pan past its edges (which would expose blank
-  // space outside the world bounds).
-  const viewportColsActual = Math.max(1, viewportSize.w / TILE);
-  const viewportRowsActual = Math.max(1, viewportSize.h / TILE);
+  // tileScale: shrink or grow the world to fill the viewport.
+  // We use the smaller of width-fit vs height-fit so the whole world
+  // stays visible in both axes (like object-fit: cover but for tiles).
+  // On mobile portrait a 390px wide screen needs scale ≈ 0.68 for 36-tile width.
+  // On a 1440px desktop it needs scale ≈ 2.5 — but we cap at 2 so the
+  // art doesn't get too chunky on large monitors.
+  const nativeWorldW = COLS * TILE;
+  const nativeWorldH = ROWS * TILE;
+  const tileScale = Math.min(
+    2,
+    viewportSize.w > 0 ? viewportSize.w / nativeWorldW : 1,
+    viewportSize.h > 0 ? viewportSize.h / nativeWorldH : 1
+  );
+
+  // Camera in tile units — compute how many tiles fit in the actual *scaled*
+  // viewport so the camera clamp is correct.
+  const viewportColsActual = viewportSize.w / (TILE * tileScale);
+  const viewportRowsActual = viewportSize.h / (TILE * tileScale);
   const rangeX = COLS - viewportColsActual;
   const rangeY = ROWS - viewportRowsActual;
   const camX = rangeX <= 0 ? rangeX / 2 : Math.max(0, Math.min(rangeX, pos.x + 0.5 - viewportColsActual / 2));
   const camY = rangeY <= 0 ? rangeY / 2 : Math.max(0, Math.min(rangeY, pos.y + 0.5 - viewportRowsActual / 2));
 
   return (
-    <div style={{ width: "100%", height: "100%", fontFamily: "'VT323', monospace", background: "#0c1828", borderRadius: 6, padding: 8, boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
+    <div style={{
+      width: "100vw",
+      height: "100dvh",
+      fontFamily: "'VT323', monospace",
+      background: "#0c1828",
+      padding: "6px 8px 8px",
+      boxSizing: "border-box",
+      display: "flex",
+      flexDirection: "column",
+      position: "relative",
+      overflow: "hidden",
+    }}>
       {/* Slim HUD bar */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, flexWrap: "wrap", gap: 8 }}>
-        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 10, color: "#ffe858" }}>
+        <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: "clamp(8px, 2vw, 11px)", color: "#ffe858" }}>
           {GAME_TITLE.toUpperCase()} <span style={{ color: "#70c8ff" }}>· {character?.name}</span>
         </div>
         <button
           onClick={() => setMenuOpen(true)}
           style={{
             fontFamily: "'Press Start 2P', monospace",
-            fontSize: 8,
+            fontSize: "clamp(7px, 1.5vw, 9px)",
             color: "#1c2c44",
             background: "#ffe858",
             border: "none",
@@ -2245,20 +2266,20 @@ export default function PortfolioGame() {
             cursor: "pointer",
             borderRadius: 3,
             boxShadow: "0 0 0 2px #c89010",
+            touchAction: "manipulation",
           }}
         >
           ☰ MENU (M)
         </button>
       </div>
 
-      {/* Game viewport — fills remaining space, no exposed map edges */}
+      {/* Game viewport — fills remaining space after HUD */}
       <div
         ref={viewportRef}
         style={{
           position: "relative",
           width: "100%",
           flex: 1,
-          minHeight: 380,
           overflow: "hidden",
           border: "3px solid #3068a8",
           boxShadow: "0 0 0 3px #0c1828",
@@ -2266,6 +2287,10 @@ export default function PortfolioGame() {
           background: "#5fa050",
         }}
       >
+        {/* World container: renders at native tile resolution then scaled down/up
+            to exactly fill the viewport. This keeps pixel art crisp at every size
+            and means all the tile/building/sprite pixel coordinates stay identical
+            across desktop and mobile — only the CSS scale changes. */}
         <div
           style={{
             position: "absolute",
@@ -2274,6 +2299,8 @@ export default function PortfolioGame() {
             width: COLS * TILE,
             height: ROWS * TILE,
             transition: "left 0.12s linear, top 0.12s linear",
+            transformOrigin: "top left",
+            transform: `scale(${tileScale})`,
           }}
         >
           <Ground />
@@ -2411,26 +2438,36 @@ export default function PortfolioGame() {
 }
 
 function DPad({ onMove }) {
-  const btn = (label, dx, dy, dir, style) => (
+  // Responsive size: comfortable tap target on mobile (min 44px),
+  // smaller on desktop where keyboard is preferred.
+  const sz = "clamp(44px, 10vmin, 54px)";
+  const btn = (label, dx, dy, dir) => (
     <button
       onClick={() => onMove(dx, dy, dir)}
       style={{
-        width: 38,
-        height: 38,
-        background: "rgba(28,44,68,0.78)",
+        width: sz,
+        height: sz,
+        background: "rgba(28,44,68,0.82)",
         border: "2px solid rgba(112,200,255,0.6)",
         color: "#fffaf0",
-        fontSize: 15,
+        fontSize: "clamp(15px, 4vmin, 20px)",
         cursor: "pointer",
         borderRadius: 6,
-        ...style,
+        touchAction: "manipulation",
+        WebkitTapHighlightColor: "transparent",
+        userSelect: "none",
       }}
     >
       {label}
     </button>
   );
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "38px 38px 38px", gridTemplateRows: "38px 38px 38px", gap: 2 }}>
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: `${sz} ${sz} ${sz}`,
+      gridTemplateRows: `${sz} ${sz} ${sz}`,
+      gap: 3,
+    }}>
       <div />{btn("▲", 0, -1, "up")}<div />
       {btn("◀", -1, 0, "left")}<div />{btn("▶", 1, 0, "right")}
       <div />{btn("▼", 0, 1, "down")}<div />
