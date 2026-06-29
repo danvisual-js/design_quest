@@ -1996,6 +1996,7 @@ function PortfolioGame() {
     w: typeof window !== "undefined" ? window.innerWidth : 800,
     h: typeof window !== "undefined" ? window.innerHeight : 600,
   }));
+  const [vpDivSize, setVpDivSize] = useState({ w: 0, h: 0 });
 
   // Zone-level navigation state — lives here so Modal props can reference it
   // without any secondary keydown listeners competing with Modal's own handler.
@@ -2025,6 +2026,24 @@ function PortfolioGame() {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  // Measure the actual game viewport div so vpDivSize is always accurate.
+  // Falls back to window-based estimate when the div hasn't mounted yet.
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setVpDivSize({ w: Math.round(width), h: Math.round(height) });
+      }
+    });
+    ro.observe(el);
+    // Seed immediately in case ResizeObserver fires after first paint
+    const rect = el.getBoundingClientRect();
+    if (rect.width > 0) setVpDivSize({ w: Math.round(rect.width), h: Math.round(rect.height) });
+    return () => ro.disconnect();
+  }, [phase]); // re-attach when phase changes (div re-mounts on phase transition)
 
   const nearestBuilding = useCallback((p) => {
     for (const b of BUILDINGS) {
@@ -2248,6 +2267,7 @@ function PortfolioGame() {
   const MAX_TILE_PX = 56;
   const MIN_COLS_VISIBLE = 8;
   const MIN_ROWS_VISIBLE = 5;
+  // Use the measured div size; fall back to window estimate until ResizeObserver fires.
   const vpW = vpDivSize.w > 0 ? vpDivSize.w : Math.max(1, viewportSize.w - 16);
   const vpH = vpDivSize.h > 0 ? vpDivSize.h : Math.max(1, viewportSize.h - 54);
   const scaleForCols = vpW / (TILE * MIN_COLS_VISIBLE);
@@ -2257,13 +2277,26 @@ function PortfolioGame() {
     Math.max(MIN_TILE_PX / TILE, Math.min(scaleForCols, scaleForRows))
   );
 
-  // Camera: how many tiles fit in the scaled viewport.
-  const viewportColsActual = vpW / (TILE * tileScale);
-  const viewportRowsActual = vpH / (TILE * tileScale);
-  const rangeX = COLS - viewportColsActual;
-  const rangeY = ROWS - viewportRowsActual;
-  const camX = rangeX <= 0 ? rangeX / 2 : Math.max(0, Math.min(rangeX, pos.x + 0.5 - viewportColsActual / 2));
-  const camY = rangeY <= 0 ? rangeY / 2 : Math.max(0, Math.min(rangeY, pos.y + 0.5 - viewportRowsActual / 2));
+  // Scaled tile size in CSS pixels.
+  const sTILE = TILE * tileScale;
+
+  // How many tiles are visible in the viewport at this scale.
+  const viewportColsActual = vpW / sTILE;
+  const viewportRowsActual = vpH / sTILE;
+
+  // Camera origin in tile coords — keep the player centered, clamped to map edges.
+  // When the whole map fits on screen, center the map instead of the player.
+  const rawCamX = pos.x + 0.5 - viewportColsActual / 2;
+  const rawCamY = pos.y + 0.5 - viewportRowsActual / 2;
+  const maxCamX = Math.max(0, COLS - viewportColsActual);
+  const maxCamY = Math.max(0, ROWS - viewportRowsActual);
+  // When map is smaller than viewport, center it (negative clamp result → offset is negative → world is centered).
+  const camX = COLS <= viewportColsActual ? (COLS - viewportColsActual) / 2 : Math.max(0, Math.min(maxCamX, rawCamX));
+  const camY = ROWS <= viewportRowsActual ? (ROWS - viewportRowsActual) / 2 : Math.max(0, Math.min(maxCamY, rawCamY));
+
+  // Camera offset in scaled CSS pixels (applied as translate on the world div).
+  const camOffsetX = -camX * sTILE;
+  const camOffsetY = -camY * sTILE;
 
   return (
     <div style={{
@@ -2316,27 +2349,29 @@ function PortfolioGame() {
           background: "#5fa050",
         }}
       >
-        {/* Clip wrapper: sized to actual viewport pixels so overflow:hidden
-            cuts at exactly the right edge on every browser including Firefox.
-            The scale div inside renders the world at native tile coordinates
-            then scales it up/down — transform:scale with transformOrigin
-            top-left so the top-left corner stays anchored. */}
-        <div style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: vpW,
-          height: vpH,
-          overflow: "hidden",
-        }}>
+        {/* World div: the entire map at native tile size, translated by the
+            camera offset (in scaled CSS pixels) and then scaled up/down.
+            Using translate+scale in one transform keeps the math clean:
+            the camera offset is already in scaled pixels so the player
+            is always centered in the viewport on every screen size. */}
+        <div
+          style={{
+            position: "absolute",
+            left: `${camOffsetX}px`,
+            top: `${camOffsetY}px`,
+            width: COLS * sTILE,
+            height: ROWS * sTILE,
+            transition: "left 0.12s linear, top 0.12s linear",
+          }}
+        >
+          {/* Inner div rendered at native tile coords, scaled up */}
           <div
             style={{
               position: "absolute",
-              left: `${-camX * TILE}px`,
-              top: `${-camY * TILE}px`,
+              left: 0,
+              top: 0,
               width: COLS * TILE,
               height: ROWS * TILE,
-              transition: "left 0.12s linear, top 0.12s linear",
               transform: `scale(${tileScale})`,
               transformOrigin: "top left",
             }}
